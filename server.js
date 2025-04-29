@@ -65,7 +65,7 @@ const newTodo = req.body.todo;
         }
         
         const todos = JSON.parse(data);
-        todos.push({text: newTodo, completed: false});//将新的待办事项添加到数组中
+        todos.push({text: newTodo, completed: false, deleted: false});//将新的待办事项添加到数组中
         
         fs.writeFile(DATA_FILE, JSON.stringify(todos), (err) => {
             if (err) {
@@ -90,11 +90,10 @@ app.delete('/api/todos/:index', (req, res) => {//:index是一个占位符，用�
             return res.status(404).send('Todo not found');
         }
         
-        todos.splice(index, 1);//从数组中删除指定索引的待办事项
+        todos[index].deleted = true;//将待办事项标记为已删除
         /*
-        splice() 方法用于删除数组中的元素，并返回被删除的元素。
-        它接受两个参数：第一个参数是要删除的起始索引，第二个参数是要删除的元素个数。
-        例如，todos.splice(0, 1) 表示从数组的第一个元素开始删除一个元素。
+        修改为标记删除而非直接删除数组元素
+        这样可以保留数据以便后续恢复或查看
         */
         
         fs.writeFile(DATA_FILE, JSON.stringify(todos), (err) => {
@@ -108,10 +107,55 @@ app.delete('/api/todos/:index', (req, res) => {//:index是一个占位符，用�
 
 // 更新待办事项完成状态
 app.patch('/api/todos/:index', (req, res) => {
-    const index = parseInt(req.params.index);//将字符串类型的索引转换为整数类型
-// parseInt 函数用于将一个字符串或数字转换为整数。它接受两个参数：
-// 第一个参数是要转换的值，通常是一个字符串。
-// 第二个参数是可选的，表示要解析的数字的基数（进制），范围从 2 到 36。如果省略该参数，默认基数为 10。
+    const index = parseInt(req.params.index);
+    const isChecked = req.body.completed;
+
+    fs.readFile(DATA_FILE, 'utf8', (err, data) => {
+        if (err) {
+            return res.status(500).send('Error reading data');
+        }
+        
+        const todos = JSON.parse(data);
+        if (index < 0 || index >= todos.length) {
+            return res.status(404).send('Todo not found');
+        }
+        
+        todos[index].completed = isChecked;
+        
+        fs.writeFile(DATA_FILE, JSON.stringify(todos), (err) => {
+            if (err) {
+                return res.status(500).send('Error saving data');
+            }
+            res.send('Todo updated');
+        });
+    });
+});
+
+// 还原待办事项
+app.patch('/api/todos/:index/restore', (req, res) => {
+    console.log(`restore OK`);
+    const index = parseInt(req.params.index);
+    
+    fs.readFile(DATA_FILE, 'utf8', (err, data) => {
+        if (err) {
+            return res.status(500).send('Error reading data');
+        }
+        
+        const todos = JSON.parse(data);
+        if (index < 0 || index >= todos.length) {
+            return res.status(404).send('Todo not found');
+        }
+        
+        todos[index].deleted = false;
+        
+        fs.writeFile(DATA_FILE, JSON.stringify(todos), (err) => {
+            if (err) {
+                return res.status(500).send('Error saving data');
+            }
+            res.send('Todo restored');
+        });
+    });
+});
 
 // // 示例 1：将字符串转换为十进制整数
 // const str1 = "123";
@@ -132,33 +176,14 @@ app.patch('/api/todos/:index', (req, res) => {
 // const str4 = "abc123";
 // const num4 = parseInt(str4);
 // console.log(num4); // 输出: NaN
-    const isChecked = req.body.completed; // 从请求体中获取 completed 属性的值
+   
 // 我们需要从请求体中获取 completed 属性的值，是因为在更新待办事项完成状态的 API 中，
 // 客户端会通过 PATCH 请求将待办事项的新完成状态发送到服务器。
 // 服务器需要根据这个值来更新对应待办事项的 completed 字段，从而实现标记待办事项完成状态的功能。
 // 例如，当用户在前端界面点击待办事项的复选框时，前端会发送一个 PATCH 请求，
 // 并在请求体中包含 completed 属性，其值为 true 或 false，以此告知服务器该待办事项是否已完成。
 
-    fs.readFile(DATA_FILE, 'utf8', (err, data) => {
-        if (err) {
-            return res.status(500).send('Error reading data');
-        }
-        
-        const todos = JSON.parse(data);
-        if (index < 0 || index >= todos.length) {
-            return res.status(404).send('Todo not found');
-        }
-        
-        todos[index].completed = isChecked; // 更新待办事项的 completed 属性
-        
-        fs.writeFile(DATA_FILE, JSON.stringify(todos), (err) => {
-            if (err) {
-                return res.status(500).send('Error saving data');
-            }
-            res.send('Todo updated');
-        });
-    });
-});
+    
 
 // 启动服务器
 app.listen(PORT, () => {

@@ -6,12 +6,28 @@ body {
 }
 
 .container {
-    max-width: 600px;
+    max-width: 1000px;
     margin: 0 auto;
     background: white;
     padding: 20px;
     border-radius: 5px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.todo-container {
+    display: flex;
+    gap: 20px;
+}
+
+.active-todos, .deleted-todos {
+    flex: 1;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.deleted-todos {
+    background-color: #f8f9fa;
 }
 
 h1 {

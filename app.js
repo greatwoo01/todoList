@@ -17,7 +17,7 @@
 document.addEventListener('DOMContentLoaded', function() {  // 页面加载完成后执行
     const form = document.getElementById('todo-form');      // 获取表单元素
     const input = document.getElementById('todo-input');    // 获取输入框元素
-    const list = document.getElementById('todo-list');      // 获取待办事项列表元素
+    const list = document.getElementById('todo-list');      // 获取待办事项列表元素    
     
     // 从服务器获取待办事项
     let todos = [];
@@ -45,43 +45,49 @@ document.addEventListener('DOMContentLoaded', function() {  // 页面加载完�
     }
     
     // 渲染待办事项列表
-    function renderTodos() {
-        list.innerHTML = '';//清空列表
-        todos.forEach((todo, index) => {//遍历待办事项数组
-            const li = document.createElement('li');    //创建列表项元素    
-            // 这是一个 JavaScript 函数，用于根据待办事项的完成状态，
-            // 动态生成待办事项的 HTML 代码。
-            // 具体来说，这个函数会根据传入的 todo 对象的 completed 属性值，
-            // 生成不同的 HTML 代码，以实现不同的样式效果。
-            // 如果 completed 属性值为 true，则生成的 HTML 代码中，
-            // 待办事项的文本会被添加一个 CSS 样式，
-            // 使得文本内容被添加一条下划线，表示该待办事项已完成。
-            // 如果 completed 属性值为 false，则生成的 HTML 代码中，
-            // 待办事项的文本不会被添加任何样式，表示该待办事项未完成。
-            // 这个函数通常用于在前端页面中动态生成待办事项列表，
-            // 以便用户可以方便地查看和管理待办事项的状态。 
-            // 例如，当用户点击待办事项的复选框时，
-            // 可以调用这个函数来更新待办事项的样式，
-            // 以反映其完成状态的变化。 
-            // 这个函数通常与其他前端框架或库一起使用，
-            // 以便实现更复杂的功能和交互效果。
-            
-            li.innerHTML = `
-                <div class="todo-item">
-                    <input type="checkbox" class="todo-checkbox" data-index="${index}" ${todo.completed ? 'checked' : ''}>
-                    <span style="${todo.completed ? 'text-decoration: line-through' : ''}">${todo.text}</span>
-                    <button class="delete-btn" data-index="${index}">Delete</button>
-                </div>
-            `;
+    let showDeleted = false;
 
-            // div 元素用于包裹待办事项的文本和删除按钮，
-            // input 元素用于表示待办事项的完成状态， data-index 属性用于存储待办事项的索引值，checked 属性用于表示待办事项的完成状态。
-            // span 元素用于显示待办事项的文本内容，style 属性用于根据待办事项的完成状态，添加或移除文本的下划线样式。  
-            // button 元素用于删除待办事项，data-index 属性用于存储待办事项的索引值。
-            
-            list.appendChild(li); //将列表项元素添加到列表中
+    function renderTodos() {
+        const activeList = document.getElementById('todo-list');
+        const deletedList = document.getElementById('deleted-list');
+        
+        activeList.innerHTML = '';
+        deletedList.innerHTML = '';
+        
+        todos.forEach((todo, index) => {
+            if (!todo.deleted) { // 渲染未删除的待办事项
+                const li = document.createElement('li');
+                
+                li.innerHTML = `
+                    <div class="todo-item">
+                        <input type="checkbox" class="todo-checkbox" data-index="${index}" ${todo.completed ? 'checked' : ''}>
+                        <span style="${todo.completed ? 'text-decoration: line-through' : ''}">${todo.text}</span>
+                        <button class="delete-btn" data-index="${index}">Delete</button>
+                    </div>
+                `;
+                
+                activeList.appendChild(li);
+            } else if (showDeleted) { // 如果显示已删除项目，则渲染
+                const li = document.createElement('li');
+                
+                li.innerHTML = `
+                    <div class="todo-item">
+                        <span style="text-decoration: line-through; color: #999;">${todo.text}</span>
+                        <button class="restore-btn" data-index="${index}">Restore</button>
+                    </div>
+                `;
+                
+                deletedList.appendChild(li);
+            }
         });
     }
+    
+    // 添加显示/隐藏已删除项目的按钮事件
+    document.getElementById('toggle-deleted-btn').addEventListener('click', function() {
+        showDeleted = !showDeleted;
+        this.textContent = showDeleted ? 'Hide Deleted' : 'Show Deleted';
+        renderTodos();
+    });
     
     // （对form）添加新待办事项
     form.addEventListener('submit', function(e) {
@@ -119,10 +125,24 @@ document.addEventListener('DOMContentLoaded', function() {  // 页面加载完�
     
     // （对list）删除待办事项
     list.addEventListener('click', function(e) {
+        console.log(e);
         if (e.target.classList.contains('delete-btn')) { //判断点击的元素是否为删除按钮
+            console.log(`delete按钮点击事件触发，处理索引值: ${e.target.getAttribute('data-index')}`);
             const index = e.target.getAttribute('data-index');  //获取待办事项的索引值
             fetch(`/api/todos/${index}`, {
                 method: 'DELETE'
+            })
+            .then(() => {
+                fetchTodos();
+            });
+        } else if (e.target.classList.contains('restore-btn')) { //判断点击的元素是否为还原按钮
+            console.log(`restore按钮点击事件触发，处理索引值: ${e.target.getAttribute('data-index')}`);
+            const index = e.target.getAttribute('data-index');
+            fetch(`/api/todos/${index}/restore`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
             })
             .then(() => {
                 fetchTodos();
@@ -153,7 +173,7 @@ document.addEventListener('DOMContentLoaded', function() {  // 页面加载完�
             // 3. 调用 `fetchTodos()` 会再次向服务器发送请求获取所有待办事项，然后重新渲染整个列表，这会带来不必要的网络请求和 DOM 操作，影响性能。
             // 因此，在这种情况下，我们只需在本地更新数据和样式即可，无需重新获取和渲染所有待办事项。
         }
-    });
+    });  
     
     // 初始获取数据
     fetchTodos();

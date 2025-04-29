@@ -13,7 +13,19 @@
             <input type="text" id="todo-input" placeholder="Add new todo..." required>
             <button type="submit">Add</button>
         </form>
+        <div class="todo-container">
+    <div class="active-todos">
+        <h2>Active Todos</h2>
         <ul id="todo-list"></ul>
+    </div>
+    <div class="deleted-todos">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2>Deleted Todos</h2>
+            <button id="toggle-deleted-btn" style="margin-left: 10px;">Show Deleted</button>
+        </div>
+        <ul id="deleted-list"></ul>
+    </div>
+</div>
     <style>
       .todo-item {
         display: flex;
