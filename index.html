@@ -10,33 +10,30 @@
     <div class="container">
         <h1>Todo List</h1>
         <form id="todo-form">
-            <input type="text" id="todo-input" placeholder="Add new todo..." required>
-            <button type="submit">Add</button>
+            <input type="text" id="todo-input" placeholder="添加待办事项" required>
+            <button type="submit">添加</button>
         </form>
         <div class="todo-container">
     <div class="active-todos">
-        <h2>Active Todos</h2>
+        <div class="active-todos-header">
+            <h2>Active Todos</h2>
+            <label class="select-all-label">
+              <input type="checkbox" id="select-all-btn"> 全选
+            </label>
+        </div>
         <ul id="todo-list"></ul>
     </div>
     <div class="deleted-todos">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h2>Deleted Todos</h2>
-            <label style="display: flex; align-items: center; margin-left: 10px;">
-              <input type="checkbox" id="toggle-deleted-btn"> Show Deleted
+        <div class="deleted-todos-header">
+            <h2>已删除</h2>
+            <label class="toggle-deleted-label">
+              <input type="checkbox" id="toggle-deleted-btn"> 显示已删除
             </label>
         </div>
         <ul id="deleted-list"></ul>
     </div>
 </div>
-    <style>
-      .todo-item {
-        display: flex;
-        align-items: center;
-      }
-      .todo-item input[type="checkbox"] {
-        margin-right: 10px;
-      }
-    </style>
+
     </div>
     <script src="app.js"></script>
 </body>

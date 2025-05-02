@@ -34,8 +34,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 li.innerHTML = `
                     <div class="todo-item">
+                        <span style="margin-right: 10px;">${index + 1}.</span>
                         <input type="checkbox" class="todo-checkbox" data-index="${index}" ${todo.completed ? 'checked' : ''}>
                         <span style="${todo.completed ? 'text-decoration: line-through' : ''}">${todo.text}</span>
+                        <button class="edit-btn" data-index="${index}">Edit</button>
                         <button class="delete-btn" data-index="${index}">Delete</button>
                     </div>
                 `;
@@ -46,6 +48,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 li.innerHTML = `
                     <div class="todo-item">
+                        <span style="margin-right: 10px;">${index + 1}.</span>
                         <span style="text-decoration: line-through; color: #999;">${todo.text}</span>
                         <button class="restore-btn" data-index="${index}">Restore</button>
                     </div>
@@ -105,6 +108,22 @@ document.addEventListener('DOMContentLoaded', function () {
                 .then(() => {
                     fetchTodos();
                 });
+        } else if (e.target.classList.contains('edit-btn')) {
+            const index = e.target.getAttribute('data-index');
+            const span = e.target.previousElementSibling;
+            const currentText = span.textContent;
+            const newText = prompt('修改Todo事项：', currentText);
+            if (newText && newText !== currentText) {
+                fetch(`/api/todos/${index}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ text: newText })
+                }).then(() => {
+                    fetchTodos();
+                });
+            }
         } else if (e.target.classList.contains('todo-checkbox')) {
             const index = e.target.getAttribute('data-index');
             const isChecked = e.target.checked;
@@ -123,6 +142,41 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+
+    // 全选按钮事件监听
+    document.getElementById('select-all-btn').addEventListener('change', function() {
+        const isChecked = this.checked;
+        const promises = [];
+        
+        todos.forEach((todo, index) => {
+            if (!todo.deleted) {
+                promises.push(
+                    fetch(`/api/todos/${index}`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ completed: isChecked })
+                    })
+                );
+            }
+        });
+        
+        Promise.all(promises).then(() => {
+            todos.forEach((todo, index) => {
+                if (!todo.deleted) {
+                    todos[index].completed = isChecked;
+                }
+            });
+            
+            const checkboxes = document.querySelectorAll('.todo-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = isChecked;
+                const span = checkbox.nextElementSibling;
+                span.style.textDecoration = isChecked ? 'line-through' : '';
+            });
+        });
+    });
 
     fetchTodos();
 });

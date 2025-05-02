@@ -27,7 +27,11 @@ body {
 }
 
 .deleted-todos {
-    background-color: #f8f9fa;
+    
+    /*background-color: #f8f9fa;
+    padding-top: 20px;
+    padding-bottom: 20px;*/
+    
 }
 
 h1 {
@@ -55,6 +59,13 @@ button {
     border-radius: 4px;
     cursor: pointer;
     margin-left: 10px;
+    min-width: 60px;
+    height: 25px;
+    font-size: 12px;
+    /*text-align: center;*/
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 button:hover {
@@ -78,15 +89,66 @@ button:hover {
     border-bottom: none;
 }
 
+#deleted-list li {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#deleted-list li:last-child {
+    border-bottom: none;
+}
+
+.todo-item {
+    display: flex;
+    align-items: center;
+}
+.todo-item input[type="checkbox"] {
+    margin-right: 10px;
+}
+
 .delete-btn {
     background-color: #dc3545;
     color: white;
     border: none;
     border-radius: 4px;
-    padding: 5px 10px;
+    padding: 10px 15px;
     cursor: pointer;
+    min-width: 60px;
+    height: 25px;
+    font-size: 12px;
+    /*text-align: center;*/
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .delete-btn:hover {
     background-color: #c82333;
+}
+
+.deleted-todos-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.toggle-deleted-label {
+    display: flex;
+    align-items: center;
+    margin-left: 10px;
+}
+
+.active-todos-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.select-all-label {
+    display: flex;
+    align-items: center;
+    margin-left: 10px;
 }

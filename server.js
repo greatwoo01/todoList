@@ -157,6 +157,36 @@ app.patch('/api/todos/:index/restore', (req, res) => {
     });
 });
 
+// 编辑待办事项
+app.put('/api/todos/:index', (req, res) => {
+    const index = parseInt(req.params.index);
+    const newText = req.body.text;
+    
+    if (!newText) {
+        return res.status(400).send('Todo text is required');
+    }
+    
+    fs.readFile(DATA_FILE, 'utf8', (err, data) => {
+        if (err) {
+            return res.status(500).send('Error reading data');
+        }
+        
+        const todos = JSON.parse(data);
+        if (index < 0 || index >= todos.length) {
+            return res.status(404).send('Todo not found');
+        }
+        
+        todos[index].text = newText;
+        
+        fs.writeFile(DATA_FILE, JSON.stringify(todos), (err) => {
+            if (err) {
+                return res.status(500).send('Error saving data');
+            }
+            res.send('Todo updated');
+        });
+    });
+});
+
 // // 示例 1：将字符串转换为十进制整数
 // const str1 = "123";
 // const num1 = parseInt(str1);
